@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Hydrate</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a1628;
+    --surface: #111f38;
+    --water-light: #38bdf8;
+    --water-mid: #0ea5e9;
+    --water-deep: #0369a1;
+    --foam: #bae6fd;
+    --gold: #fbbf24;
+    --text: #e0f2fe;
+    --muted: #5e8ab4;
+    --success: #34d399;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; overflow: hidden; position: relative; }
+  body::before { content: ''; position: fixed; width: 400px; height: 400px; background: radial-gradient(circle, rgba(14,165,233,0.12) 0%, transparent 70%); top: 20%; left: 50%; transform: translateX(-50%); pointer-events: none; }
+  .app { width: 100%; max-width: 390px; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; padding: 0 24px 32px; position: relative; }
+  .header { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 52px 0 24px; }
+  .header h1 { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.5px; color: var(--text); }
+  .settings-btn { width: 40px; height: 40px; border-radius: 12px; background: var(--surface); border: 1px solid rgba(56,189,248,0.15); color: var(--muted); font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+  .settings-btn:active { transform: scale(0.92); background: rgba(56,189,248,0.1); }
+  .stats-bar { display: flex; gap: 10px; width: 100%; margin-bottom: 28px; }
+  .stat-chip { flex: 1; background: var(--surface); border: 1px solid rgba(56,189,248,0.12); border-radius: 14px; padding: 12px 10px; text-align: center; }
+  .stat-chip .val { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; color: var(--water-light); line-height: 1; }
+  .stat-chip .lbl { font-size: 10px; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .bottle-wrap { position: relative; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; margin-bottom: 24px; }
+  .bottle-svg { width: 200px; height: 340px; filter: drop-shadow(0 20px 40px rgba(14,165,233,0.25)); transition: filter 0.3s; }
+  .bottle-label { position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%); text-align: center; pointer-events: none; }
+  .pct-text { font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 800; color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,0.4); line-height: 1; }
+  .oz-text { font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 2px; }
+  .tap-hint { font-size: 12px; color: var(--muted); margin-bottom: 20px; display: flex; align-items: center; gap: 6px; transition: opacity 0.3s; }
+  .tap-hint span { font-size: 16px; }
+  .drink-btn { width: 100%; height: 62px; border-radius: 18px; background: linear-gradient(135deg, var(--water-mid), var(--water-deep)); border: none; color: white; font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; cursor: pointer; position: relative; overflow: hidden; transition: transform 0.15s, box-shadow 0.15s; box-shadow: 0 8px 24px rgba(14,165,233,0.3); }
+  .drink-btn::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent); }
+  .drink-btn:active { transform: scale(0.97); box-shadow: 0 4px 12px rgba(14,165,233,0.2); }
+  .reset-btn { width: 100%; height: 48px; border-radius: 14px; background: transparent; border: 1px solid rgba(56,189,248,0.2); color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+  .reset-btn:active { background: rgba(56,189,248,0.06); color: var(--text); }
+  .action-row { display: flex; gap: 10px; width: 100%; margin-bottom: 12px; }
+  .action-row .drink-btn { flex: 1; margin-bottom: 0; }
+  .dec-btn { width: 62px; height: 62px; border-radius: 18px; background: var(--surface); border: 1px solid rgba(56,189,248,0.2); color: var(--water-light); font-size: 28px; font-weight: 300; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; }
+  .dec-btn:active { transform: scale(0.93); background: rgba(56,189,248,0.1); }
+  .creatine-card { width: 100%; border-radius: 18px; background: var(--surface); border: 1px solid rgba(56,189,248,0.15); padding: 16px 18px; display: flex; align-items: center; gap: 14px; margin-bottom: 12px; transition: border-color 0.4s, background 0.4s; cursor: pointer; user-select: none; position: relative; overflow: hidden; }
+  .creatine-card.unlocked { border-color: rgba(56,189,248,0.4); }
+  .creatine-card.locked { opacity: 0.55; cursor: not-allowed; }
+  .creatine-card.done { border-color: rgba(52,211,153,0.5); background: rgba(52,211,153,0.06); }
+  .creatine-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(52,211,153,0.08), transparent); opacity: 0; transition: opacity 0.4s; }
+  .creatine-card.done::before { opacity: 1; }
+  .check-circle { width: 44px; height: 44px; border-radius: 50%; border: 2px solid rgba(56,189,248,0.3); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); background: transparent; }
+  .creatine-card.done .check-circle { background: var(--success); border-color: var(--success); transform: scale(1.1); }
+  .creatine-card.unlocked:not(.done) .check-circle { border-color: rgba(56,189,248,0.6); }
+  .creatine-info { flex: 1; }
+  .creatine-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+  .creatine-sub { font-size: 11px; color: var(--muted); transition: color 0.3s; }
+  .creatine-card.done .creatine-sub { color: var(--success); }
+  .creatine-card.unlocked:not(.done) .creatine-sub { color: var(--water-light); }
+  .lock-icon { font-size: 16px; color: var(--muted); flex-shrink: 0; }
+  .settings-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 100; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+  .settings-overlay.open { opacity: 1; pointer-events: all; }
+  .settings-sheet { width: 100%; max-width: 390px; background: #0f1e35; border-radius: 28px 28px 0 0; padding: 28px 24px 48px; border: 1px solid rgba(56,189,248,0.15); border-bottom: none; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+  .settings-overlay.open .settings-sheet { transform: translateY(0); }
+  .sheet-handle { width: 40px; height: 4px; background: rgba(56,189,248,0.25); border-radius: 2px; margin: 0 auto 24px; }
+  .settings-sheet h2 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 24px; }
+  .field { margin-bottom: 20px; }
+  .field label { display: block; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .field-row​​​​​​​​​​​​​​​​
